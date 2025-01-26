@@ -29,7 +29,7 @@ def is_valid_id(id_value):
 # Start komandasiga javob
 @router.message(F.text == "/start")
 async def send_welcome(message: types.Message):
-    await message.answer("Assalomu alaykum 😊\n Menga 6 ta raqamdan iborat ID yuboring.")
+    await message.answer("Assalomu alaykum!\n Menga 6 ta raqamdan iborat ID yuboring.")
 
 # ID qabul qilish
 @router.message(F.text)
