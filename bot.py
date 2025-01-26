@@ -29,7 +29,7 @@ def is_valid_id(id_value):
 # Start komandasiga javob
 @router.message(F.text == "/start")
 async def send_welcome(message: types.Message):
-    await message.answer("Assalomu alaykum! Menga 6 ta raqamdan iborat ID yuboring.")
+    await message.answer("Assalomu alaykum😊 \br Menga 6 ta raqamdan iborat ID yuboring.")
 
 # ID qabul qilish
 @router.message(F.text)
@@ -37,7 +37,7 @@ async def handle_id(message: types.Message):
     user_id = message.text.strip()
 
     if not is_valid_id(user_id):
-        await message.answer("Noto'g'ri ID! Iltimos, faqat 6 ta raqamdan iborat ID yuboring.")
+        await message.answer("Noto'g'ri ID! Iltimos, faqat 6 ta raqamdan iborat ID yuboring❌")
         return
 
     # API GET so'rovi
@@ -51,7 +51,7 @@ async def handle_id(message: types.Message):
             # PDF ni foydalanuvchiga yuborish
             await bot.send_document(message.chat.id, InputFile(pdf_path))
         else:
-            await message.answer("Kechirasiz, bazada ma'lumot topilmadi!")
+            await message.answer("Kechirasiz, bazada ma'lumot topilmadi🙁")
     except Exception as e:
         logging.error(f"Xato yuz berdi: {e}")
         await message.answer("Xatolik yuz berdi. Keyinroq qayta urinib ko'ring.")
