@@ -65,22 +65,25 @@ async def is_user_subscribed(user_id):
         logging.error(f"Kanal a'zoligini tekshirishda xatolik: {e}")
         return False
 
-# Start komandasiga javob
+
 @router.message(F.text == "/start")
 async def send_welcome(message: types.Message):
     user_id = message.from_user.id
 
-    if is_user_registered(user_id):
-        if await is_user_subscribed(user_id):
-            await message.answer("Assalomu alaykum! Siz avval ro'yxatdan o'tgansiz va kanalga obuna bo'lgansiz. Davom etishingiz mumkin.")
+    if await is_user_subscribed(user_id):  # Agar kanalga obuna bo'lsa
+        if is_user_registered(user_id):  # Agar ro'yxatdan o'tgan bo'lsa
+            await message.answer("Assalomu alaykum! Siz ro'yxatdan o'tgansiz va kanalga obuna bo'lgansiz. Davom etishingiz mumkin.")
         else:
-            await message.answer("Assalomu alaykum! Siz ro'yxatdan o'tgansiz, ammo kanalga obuna bo'lishingiz kerak. Iltimos, kanalga a'zo bo'ling va qaytadan boshlang.")
-    else:
+            await message.answer(
+                "Assalomu alaykum!\nIltimos, telefon raqamingizni yuboring, ro'yxatdan o'tishingiz kerak.",
+                reply_markup=phone_keyboard
+            )
+    else:  # Kanalga obuna bo'lmasa
+        kanal_urli = f"https://t.me/{CHANNEL_ID.replace('@', '')}"
         await message.answer(
-            "Assalomu alaykum!\nSiz ro'yxatdan o'tmagansiz. Iltimos, telefon raqamingizni yuboring.",
-            reply_markup=phone_keyboard
+            f"Assalomu alaykum!\nDavom etish uchun [kanalimizga obuna bo'ling]({kanal_urli}) va qaytadan /start komandasini yuboring.",
+            parse_mode="Markdown"
         )
-
 # Telefon raqamini qabul qilish
 @router.message(F.contact)
 async def handle_contact(message: types.Message):
