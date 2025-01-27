@@ -12,6 +12,7 @@ import os
 # .env fayldan tokenni yuklash
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHANNEL_ID = "@1980274573"  # Kanal ID sini kiriting
 CHECK_USER_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/check-user/"  # Foydalanuvchini tekshirish uchun API URL
 REGISTER_USER_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/register-user/"  # Foydalanuvchini ro'yxatdan o'tkazish uchun API URL
 BASE_URL = "https://your-api.com/resource"  # GET so'rovi uchun API URL
@@ -52,8 +53,17 @@ phone_keyboard = ReplyKeyboardMarkup(
         [KeyboardButton(text="📱 Telefon raqam yuborish", request_contact=True)]
     ],
     resize_keyboard=True,
-    one_time_keyboard=True,
+    one_time_keyboard=True
 )
+
+# Kanalga a'zolikni tekshirish
+async def is_user_subscribed(user_id):
+    try:
+        chat_member = await bot.get_chat_member(CHANNEL_ID, user_id)
+        return chat_member.status in ["member", "administrator", "creator"]
+    except Exception as e:
+        logging.error(f"Kanal a'zoligini tekshirishda xatolik: {e}")
+        return False
 
 # Start komandasiga javob
 @router.message(F.text == "/start")
@@ -61,7 +71,10 @@ async def send_welcome(message: types.Message):
     user_id = message.from_user.id
 
     if is_user_registered(user_id):
-        await message.answer("Assalomu alaykum! Siz avval ro'yxatdan o'tgansiz. Davom etishingiz mumkin.")
+        if await is_user_subscribed(user_id):
+            await message.answer("Assalomu alaykum! Siz avval ro'yxatdan o'tgansiz va kanalga obuna bo'lgansiz. Davom etishingiz mumkin.")
+        else:
+            await message.answer("Assalomu alaykum! Siz ro'yxatdan o'tgansiz, ammo kanalga obuna bo'lishingiz kerak. Iltimos, kanalga a'zo bo'ling va qaytadan boshlang.")
     else:
         await message.answer(
             "Assalomu alaykum!\nSiz ro'yxatdan o'tmagansiz. Iltimos, telefon raqamingizni yuboring.",
