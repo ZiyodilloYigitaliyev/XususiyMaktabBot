@@ -12,7 +12,7 @@ import os
 # .env fayldan tokenni yuklash
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-CHANNEL_ID = "1980274573"  # Kanal ID sini kiriting
+CHANNEL_ID = os.getenv("CHANNEL_ID")
 CHECK_USER_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/check-user/"  # Foydalanuvchini tekshirish uchun API URL
 REGISTER_USER_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/register-user/"  # Foydalanuvchini ro'yxatdan o'tkazish uchun API URL
 BASE_URL = "https://your-api.com/resource"  # GET so'rovi uchun API URL
@@ -79,6 +79,7 @@ async def send_welcome(message: types.Message):
                 reply_markup=phone_keyboard
             )
     else:  # Kanalga obuna bo'lmasa
+        chat = await bot.get_chat("@bukhara_maktabi")
         kanal_urli = f"https://t.me/bukhara_maktabi"
         await message.answer(
             f"Assalomu alaykum!\nDavom etish uchun [kanalimizga obuna bo'ling]({kanal_urli}) va qaytadan /start komandasini yuboring.",
