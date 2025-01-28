@@ -79,7 +79,7 @@ async def send_welcome(message: types.Message):
                 reply_markup=phone_keyboard
             )
     else:  # Kanalga obuna bo'lmasa
-        kanal_urli = f"https://t.me/{CHANNEL_ID.replace('@', 'bukhara_maktabi')}"
+        kanal_urli = f"https://t.me/bukhara_maktabi"
         await message.answer(
             f"Assalomu alaykum!\nDavom etish uchun [kanalimizga obuna bo'ling]({kanal_urli}) va qaytadan /start komandasini yuboring.",
             parse_mode="Markdown"
