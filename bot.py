@@ -12,7 +12,7 @@ import os
 # .env fayldan tokenni yuklash
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-CHANNEL_ID = "@1980274573"  # Kanal ID sini kiriting
+CHANNEL_ID = "1980274573"  # Kanal ID sini kiriting
 CHECK_USER_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/check-user/"  # Foydalanuvchini tekshirish uchun API URL
 REGISTER_USER_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/register-user/"  # Foydalanuvchini ro'yxatdan o'tkazish uchun API URL
 BASE_URL = "https://your-api.com/resource"  # GET so'rovi uchun API URL
