@@ -140,7 +140,7 @@ async def handle_id(message: types.Message):
             # PDF ni foydalanuvchiga yuborish
             await bot.send_document(message.chat.id, InputFile(pdf_path))
         else:
-            await message.answer("Kechirasiz, bazada ma'lumot topilmadi🙁")
+            await message.answer("Jarayonda... ⏳")
     except Exception as e:
         logging.error(f"Xato yuz berdi: {e}")
         await message.answer("Xatolik yuz berdi. Keyinroq qayta urinib ko'ring.")
