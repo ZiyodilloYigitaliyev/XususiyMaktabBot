@@ -9,15 +9,16 @@ import requests
 import logging
 import os
 
-# .env fayldan tokenni yuklash
+# .env fayldan token va boshqa o'zgaruvchilarni yuklaymiz
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 CHECK_USER_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/check-user/"
 REGISTER_USER_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/register-user/"
 BASE_URL = "https://backup-questions-e95023d8185c.herokuapp.com/main/get-pdf/"
-CHANNEL_STATS_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/channel-stats/"  # APIga kanal statistikasi yuboriladigan URL
-MEDIA_BASE_URL = "https://backup-questions-e95023d8185c.herokuapp.com"  # PDF fayllar uchun asosiy URL
+CHANNEL_STATS_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/channel-stats/"
+# Endi PDF URL to'liq manzil sifatida qaytariladi, shuning uchun MEDIA_BASE_URL kerak emas
+
 logging.basicConfig(level=logging.INFO)
 
 # Bot va Dispatcher obyektlarini yaratamiz
@@ -26,7 +27,7 @@ dp = Dispatcher(storage=MemoryStorage())
 router = Router()
 dp.include_router(router)
 
-# Foydalanuvchi ro'yxatdan o'tganini API orqali tekshirish
+# Foydalanuvchi ro'yxatdan o'tganligini API orqali tekshiramiz
 def is_user_registered(user_id):
     try:
         response = requests.get(f"{CHECK_USER_URL}?user_id={user_id}")
@@ -35,7 +36,7 @@ def is_user_registered(user_id):
         logging.error(f"Foydalanuvchini tekshirishda xatolik: {e}")
         return False
 
-# Foydalanuvchini API orqali ro'yxatdan o'tkazish
+# Foydalanuvchini API orqali ro'yxatdan o'tkazamiz
 def register_user(user_id, phone_number):
     try:
         data = {
@@ -48,7 +49,7 @@ def register_user(user_id, phone_number):
         logging.error(f"Foydalanuvchini ro'yxatdan o'tkazishda xatolik: {e}")
         return False
 
-# Telefon raqami uchun tugma
+# Telefon raqamini yuborish uchun tugma
 phone_keyboard = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="📱 Telefon raqam yuborish", request_contact=True)]
@@ -57,7 +58,7 @@ phone_keyboard = ReplyKeyboardMarkup(
     one_time_keyboard=True
 )
 
-# Kanalga a'zolikni tekshirish
+# Kanalga a'zolikni tekshiramiz
 async def is_user_subscribed(user_id):
     try:
         chat_member = await bot.get_chat_member(CHANNEL_ID, user_id)
@@ -89,6 +90,7 @@ async def send_channel_stats():
     except Exception as e:
         logging.error(f"Kanal statistikasi olishda yoki yuborishda xatolik: {e}")
 
+# /start buyrug'i kelganida foydalanuvchini xush kelibsiz deb javob qaytaramiz
 @router.message(F.text == "/start")
 async def send_welcome(message: types.Message):
     user_id = message.from_user.id
@@ -101,7 +103,7 @@ async def send_welcome(message: types.Message):
                 "Assalomu alaykum!\nIltimos, telefon raqamingizni yuboring, ro'yxatdan o'tishingiz kerak.",
                 reply_markup=phone_keyboard
             )
-        await send_channel_stats()  # Har bir start buyrug'ida kanal statistikasi yangilanadi
+        await send_channel_stats()  # Har bir /start buyrug'ida kanal statistikasi yangilanadi
     else:
         kanal_urli = f"https://t.me/bukhara_maktabi"
         await message.answer(
@@ -120,17 +122,18 @@ async def handle_contact(message: types.Message):
     else:
         await message.answer("Ro'yxatdan o'tishda xatolik yuz berdi. Keyinroq qayta urinib ko'ring.")
 
-# ID qabul qilish
+# Foydalanuvchidan yuborilgan ID asosida PDF faylni olish
 @router.message(F.text)
 async def handle_id(message: types.Message, bot: Bot):
     user_id = message.text.strip()
 
+    # ID 6 xonali raqam ekanligini tekshiramiz
     if not user_id.isdigit() or len(user_id) != 6:
         await message.answer("Noto'g'ri ID! Iltimos, faqat 6 ta raqamdan iborat ID yuboring❌")
         return
 
     try:
-        # API GET so‘rovi
+        # API orqali ma'lumotlarni olamiz
         response = requests.get(f"{BASE_URL}?user_id={user_id}")
 
         if response.status_code == 200:
@@ -140,22 +143,22 @@ async def handle_id(message: types.Message, bot: Bot):
                 await message.answer("PDF fayl topilmadi ❌")
                 return
 
-            # To‘liq PDF URL hosil qilish
-            pdf_url = f"{MEDIA_BASE_URL}{data['pdf_url']}"
+            # API endi to'liq PDF URL qaytaradi, shuning uchun uni bevosita ishlatamiz
+            pdf_url = data['pdf_url']
 
-            # ✅ PDF faylni yuklab olish
+            # PDF faylni yuklab olish
             pdf_response = requests.get(pdf_url)
             if pdf_response.status_code == 200:
                 pdf_path = f"temp_{user_id}.pdf"
                 with open(pdf_path, "wb") as f:
                     f.write(pdf_response.content)
 
-                # ✅ Faylni ochib, InputFile ga berish
-                with open(pdf_path, "rb") as pdf_file:  # Faylni binar shaklda o‘qish
-                    input_file = InputFile(pdf_file)  # `InputFile` to‘g‘ri ishlatilishi kerak
-                    await bot.send_document(message.chat.id, input_file)  # Faylni yuborish
+                # PDF faylni InputFile ga aylantirib, foydalanuvchiga yuboramiz
+                with open(pdf_path, "rb") as pdf_file:
+                    input_file = InputFile(pdf_file)
+                    await bot.send_document(message.chat.id, input_file)
 
-                # ✅ Faylni o‘chirish
+                # Yaratilgan vaqtinchalik faylni o'chiramiz
                 os.remove(pdf_path)
             else:
                 await message.answer("PDF yuklab olinmadi ❌")
@@ -165,8 +168,7 @@ async def handle_id(message: types.Message, bot: Bot):
         logging.error(f"Xato yuz berdi: {e}")
         await message.answer("Xatolik yuz berdi. Keyinroq qayta urinib ko‘ring.")
 
-
-# Botni ishga tushirish
+# Botni ishga tushiramiz
 async def main():
     await dp.start_polling(bot)
 
