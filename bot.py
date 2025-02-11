@@ -1,5 +1,5 @@
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InputFile
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, FSInputFile
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.dispatcher.router import Router
 from aiogram import F
@@ -153,10 +153,9 @@ async def handle_id(message: types.Message, bot: Bot):
                 with open(pdf_path, "wb") as f:
                     f.write(pdf_response.content)
 
-                # PDF faylni InputFile ga aylantirib, foydalanuvchiga yuboramiz
-                with open(pdf_path, "rb") as pdf_file:
-                    input_file = InputFile(pdf_file)
-                    await bot.send_document(message.chat.id, input_file)
+                # FSInputFile yordamida PDF faylni yuborish
+                input_file = FSInputFile(pdf_path)
+                await bot.send_document(message.chat.id, input_file)
 
                 # Yaratilgan vaqtinchalik faylni o'chiramiz
                 os.remove(pdf_path)
