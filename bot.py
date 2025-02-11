@@ -17,7 +17,7 @@ CHECK_USER_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/check-user/"
 REGISTER_USER_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/register-user/"
 BASE_URL = "https://backup-questions-e95023d8185c.herokuapp.com/main/get-pdf/"
 CHANNEL_STATS_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/channel-stats/"  # APIga kanal statistikasi yuboriladigan URL
-
+MEDIA_BASE_URL = "https://backup-questions-e95023d8185c.herokuapp.com"  # PDF fayllar uchun asosiy URL
 logging.basicConfig(level=logging.INFO)
 
 # Bot va Dispatcher obyektlarini yaratamiz
@@ -134,16 +134,30 @@ async def handle_id(message: types.Message, bot: Bot):
         response = requests.get(f"{BASE_URL}?user_id={user_id}")
 
         if response.status_code == 200:
-            pdf_path = f"temp_{user_id}.pdf"
-            with open(pdf_path, "wb") as f:
-                f.write(response.content)
+            data = response.json()
 
-            # ✅ Faylni ochib, InputFile ga berish
-            with open(pdf_path, "rb") as pdf_file:
-                await bot.send_document(message.chat.id, InputFile(pdf_file))
+            if "pdf_url" not in data:
+                await message.answer("PDF fayl topilmadi ❌")
+                return
 
-            # ✅ Faylni o‘chirish
-            os.remove(pdf_path)
+            # To‘liq PDF URL hosil qilish
+            pdf_url = f"{MEDIA_BASE_URL}{data['pdf_url']}"
+
+            # ✅ PDF faylni yuklab olish
+            pdf_response = requests.get(pdf_url)
+            if pdf_response.status_code == 200:
+                pdf_path = f"temp_{user_id}.pdf"
+                with open(pdf_path, "wb") as f:
+                    f.write(pdf_response.content)
+
+                # ✅ Faylni ochib, InputFile ga berish
+                with open(pdf_path, "rb") as pdf_file:
+                    await bot.send_document(message.chat.id, InputFile(pdf_file))
+
+                # ✅ Faylni o‘chirish
+                os.remove(pdf_path)
+            else:
+                await message.answer("PDF yuklab olinmadi ❌")
         else:
             await message.answer("Bunday ID bo‘yicha ma'lumot topilmadi ❌")
     except Exception as e:
