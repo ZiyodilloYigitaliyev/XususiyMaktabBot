@@ -15,7 +15,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 CHECK_USER_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/check-user/"
 REGISTER_USER_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/register-user/"
-BASE_URL = "https://your-api.com/resource"
+BASE_URL = "https://backup-questions-e95023d8185c.herokuapp.com/main/get-pdf/"
 CHANNEL_STATS_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/channel-stats/"  # APIga kanal statistikasi yuboriladigan URL
 
 logging.basicConfig(level=logging.INFO)
@@ -129,21 +129,26 @@ async def handle_id(message: types.Message):
         await message.answer("Noto'g'ri ID! Iltimos, faqat 6 ta raqamdan iborat ID yuboring❌")
         return
 
-    # API GET so'rovi
     try:
-        response = requests.get(f"{BASE_URL}?id={user_id}")
+        # API GET so‘rovi
+        response = requests.get(f"{BASE_URL}?user_id={user_id}")
+
         if response.status_code == 200:
-            pdf_path = "downloaded_file.pdf"
+            pdf_path = f"temp_{user_id}.pdf"
             with open(pdf_path, "wb") as f:
                 f.write(response.content)
 
-            # PDF ni foydalanuvchiga yuborish
+            # PDF faylini foydalanuvchiga yuborish
             await bot.send_document(message.chat.id, InputFile(pdf_path))
+
+            # Faylni o‘chirish
+            os.remove(pdf_path)
         else:
-            await message.answer("Jarayonda... ⏳")
+            await message.answer("Bunday ID bo‘yicha ma'lumot topilmadi ❌")
     except Exception as e:
         logging.error(f"Xato yuz berdi: {e}")
-        await message.answer("Xatolik yuz berdi. Keyinroq qayta urinib ko'ring.")
+        await message.answer("Xatolik yuz berdi. Keyinroq qayta urinib ko‘ring.")
+
 
 # Botni ishga tushirish
 async def main():
