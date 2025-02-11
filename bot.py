@@ -152,7 +152,8 @@ async def handle_id(message: types.Message, bot: Bot):
 
                 # ✅ Faylni ochib, InputFile ga berish
                 with open(pdf_path, "rb") as pdf_file:  # Faylni binar shaklda o‘qish
-                    await bot.send_document(message.chat.id, InputFile(pdf_file))  # Faylni yuborish
+                    input_file = InputFile(pdf_file)  # `InputFile` to‘g‘ri ishlatilishi kerak
+                    await bot.send_document(message.chat.id, input_file)  # Faylni yuborish
 
                 # ✅ Faylni o‘chirish
                 os.remove(pdf_path)
