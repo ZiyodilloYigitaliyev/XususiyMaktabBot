@@ -8,7 +8,6 @@ import asyncio
 import requests
 import logging
 import os
-from aiogram.filters import Text
 
 # .env fayldan tokenni yuklash
 load_dotenv()
@@ -122,7 +121,7 @@ async def handle_contact(message: types.Message):
         await message.answer("Ro'yxatdan o'tishda xatolik yuz berdi. Keyinroq qayta urinib ko'ring.")
 
 # ID qabul qilish
-@router.message(Text())
+@router.message(F.text)
 async def handle_id(message: types.Message, bot: Bot):
     user_id = message.text.strip()
 
