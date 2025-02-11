@@ -8,6 +8,7 @@ import asyncio
 import requests
 import logging
 import os
+from aiogram.filters import Text
 
 # .env fayldan tokenni yuklash
 load_dotenv()
@@ -121,8 +122,8 @@ async def handle_contact(message: types.Message):
         await message.answer("Ro'yxatdan o'tishda xatolik yuz berdi. Keyinroq qayta urinib ko'ring.")
 
 # ID qabul qilish
-@router.message(F.text)
-async def handle_id(message: types.Message):
+@router.message(Text())
+async def handle_id(message: types.Message, bot: Bot):
     user_id = message.text.strip()
 
     if not user_id.isdigit() or len(user_id) != 6:
@@ -138,10 +139,11 @@ async def handle_id(message: types.Message):
             with open(pdf_path, "wb") as f:
                 f.write(response.content)
 
-            # PDF faylini foydalanuvchiga yuborish
-            await bot.send_document(message.chat.id, InputFile(pdf_path))
+            # ✅ Faylni ochib, InputFile ga berish
+            with open(pdf_path, "rb") as pdf_file:
+                await bot.send_document(message.chat.id, InputFile(pdf_file))
 
-            # Faylni o‘chirish
+            # ✅ Faylni o‘chirish
             os.remove(pdf_path)
         else:
             await message.answer("Bunday ID bo‘yicha ma'lumot topilmadi ❌")
