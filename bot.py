@@ -8,7 +8,7 @@ import asyncio
 import requests
 import logging
 import os
-from aiogram.filters import Command
+
 
 # .env fayldan token va boshqa o'zgaruvchilarni yuklaymiz
 load_dotenv()
@@ -198,13 +198,6 @@ async def handle_id(message: types.Message, bot: Bot):
         logging.error(f"Xato yuz berdi: {e}")
         await message.answer("Xatolik yuz berdi. Keyinroq qayta urinib ko‘ring.")
         
-@router.message(Command("getid"))
-async def get_channel_id(message: types.Message):
-    try:
-        chat = await bot.get_chat(message.chat.id)
-        await message.answer(f"Kanal ID: {chat.id}")
-    except Exception as e:
-        await message.answer(f"Xatolik yuz berdi: {e}")
 
 # Botni ishga tushiramiz
 async def main():
