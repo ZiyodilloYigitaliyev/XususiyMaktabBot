@@ -14,11 +14,11 @@ from aiogram.filters import Command
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
-CHANNEL_ID_2 = os.getenv("CHANNEL_ID_2")  # Ikkinchi kanal ID sini .env dan oling
-CHECK_USER_URL = os.getenv("CHECK_USER_URL", "https://scan-app-9206bf041b06.herokuapp.com/bot/check-user/")
-REGISTER_USER_URL = os.getenv("REGISTER_USER_URL", "https://scan-app-9206bf041b06.herokuapp.com/bot/register-user/")
-BASE_URL = os.getenv("BASE_URL", "https://backup-questions-e95023d8185c.herokuapp.com/main/get-pdf/")
-CHANNEL_STATS_URL = os.getenv("CHANNEL_STATS_URL", "https://scan-app-9206bf041b06.herokuapp.com/bot/channel-stats/")
+CHANNEL_ID_2 = os.getenv("CHANNEL_ID_2")
+CHECK_USER_URL = os.getenv("CHECK_USER_URL")
+REGISTER_USER_URL = os.getenv("REGISTER_USER_URL")
+BASE_URL = os.getenv("BASE_URL")
+CHANNEL_STATS_URL = os.getenv("CHANNEL_STATS_URL")
 
 logging.basicConfig(level=logging.INFO)
 
