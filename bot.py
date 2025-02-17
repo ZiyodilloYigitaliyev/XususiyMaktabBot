@@ -8,6 +8,7 @@ import asyncio
 import requests
 import logging
 import os
+from aiogram.filters import Command
 
 # .env fayldan token va boshqa o'zgaruvchilarni yuklaymiz
 load_dotenv()
@@ -197,10 +198,9 @@ async def handle_id(message: types.Message, bot: Bot):
         logging.error(f"Xato yuz berdi: {e}")
         await message.answer("Xatolik yuz berdi. Keyinroq qayta urinib ko‘ring.")
         
-@router.message(commands=["getid"])
+@router.message(Command("getid"))
 async def get_channel_id(message: types.Message):
     try:
-        # Bot admin huquqiga ega bo'lgan kanalda yuborilgan xabar kontekstida chat ma'lumotlarini olish
         chat = await bot.get_chat(message.chat.id)
         await message.answer(f"Kanal ID: {chat.id}")
     except Exception as e:
