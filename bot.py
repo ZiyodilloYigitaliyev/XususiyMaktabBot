@@ -13,11 +13,11 @@ import os
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
-CHECK_USER_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/check-user/"
-REGISTER_USER_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/register-user/"
-BASE_URL = "https://backup-questions-e95023d8185c.herokuapp.com/main/get-pdf/"
-CHANNEL_STATS_URL = "https://scan-app-9206bf041b06.herokuapp.com/bot/channel-stats/"
-# Endi PDF URL to'liq manzil sifatida qaytariladi, shuning uchun MEDIA_BASE_URL kerak emas
+CHANNEL_ID_2 = os.getenv("CHANNEL_ID_2")  # Ikkinchi kanal ID sini .env dan oling
+CHECK_USER_URL = os.getenv("CHECK_USER_URL", "https://scan-app-9206bf041b06.herokuapp.com/bot/check-user/")
+REGISTER_USER_URL = os.getenv("REGISTER_USER_URL", "https://scan-app-9206bf041b06.herokuapp.com/bot/register-user/")
+BASE_URL = os.getenv("BASE_URL", "https://backup-questions-e95023d8185c.herokuapp.com/main/get-pdf/")
+CHANNEL_STATS_URL = os.getenv("CHANNEL_STATS_URL", "https://scan-app-9206bf041b06.herokuapp.com/bot/channel-stats/")
 
 logging.basicConfig(level=logging.INFO)
 
@@ -58,17 +58,18 @@ phone_keyboard = ReplyKeyboardMarkup(
     one_time_keyboard=True
 )
 
-# Kanalga a'zolikni tekshiramiz
-async def is_user_subscribed(user_id):
+# Kanalga a'zolikni tekshiramiz (kanal ID sini parametr sifatida oladi)
+async def is_user_subscribed(user_id, channel_id):
     try:
-        chat_member = await bot.get_chat_member(CHANNEL_ID, user_id)
+        chat_member = await bot.get_chat_member(channel_id, user_id)
         return chat_member.status in ["member", "administrator", "creator"]
     except Exception as e:
-        logging.error(f"Kanal a'zoligini tekshirishda xatolik: {e}")
+        logging.error(f"Kanal (ID: {channel_id}) a'zoligini tekshirishda xatolik: {e}")
         return False
 
-# Kanal statistikasi APIga yuborish
+# Kanal statistikasi APIga yuborish (ikkala kanal uchun misol)
 async def send_channel_stats():
+    # Birinchi kanal uchun statistikani yuboramiz
     try:
         chat = await bot.get_chat(CHANNEL_ID)
         member_count = await bot.get_chat_member_count(CHANNEL_ID)
@@ -83,21 +84,45 @@ async def send_channel_stats():
         response = requests.post(CHANNEL_STATS_URL, json=data)
 
         if response.status_code == 201:
-            logging.info("Kanal statistikasi APIga muvaffaqiyatli yuborildi.")
+            logging.info("Birinchi kanal statistikasi APIga muvaffaqiyatli yuborildi.")
         else:
-            logging.warning(f"Kanal statistikasi yuborishda xatolik: {response.text}")
-
+            logging.warning(f"Birinchi kanal statistikasi yuborishda xatolik: {response.text}")
     except Exception as e:
-        logging.error(f"Kanal statistikasi olishda yoki yuborishda xatolik: {e}")
+        logging.error(f"Birinchi kanal statistikasi olishda yoki yuborishda xatolik: {e}")
+
+    # Ikkinchi kanal uchun statistikani yuboramiz
+    try:
+        chat2 = await bot.get_chat(CHANNEL_ID_2)
+        member_count2 = await bot.get_chat_member_count(CHANNEL_ID_2)
+
+        data2 = {
+            "channel_id": chat2.id,
+            "channel_name": chat2.title,
+            "username": chat2.username or "",
+            "description": chat2.description or "",
+            "member_count": member_count2
+        }
+        response2 = requests.post(CHANNEL_STATS_URL, json=data2)
+
+        if response2.status_code == 201:
+            logging.info("Ikkinchi kanal statistikasi APIga muvaffaqiyatli yuborildi.")
+        else:
+            logging.warning(f"Ikkinchi kanal statistikasi yuborishda xatolik: {response2.text}")
+    except Exception as e:
+        logging.error(f"Ikkinchi kanal statistikasi olishda yoki yuborishda xatolik: {e}")
 
 # /start buyrug'i kelganida foydalanuvchini xush kelibsiz deb javob qaytaramiz
 @router.message(F.text == "/start")
 async def send_welcome(message: types.Message):
     user_id = message.from_user.id
 
-    if await is_user_subscribed(user_id):
+    # Ikkala kanalga ham a'zo ekanligini tekshiramiz
+    subscribed_first = await is_user_subscribed(user_id, CHANNEL_ID)
+    subscribed_second = await is_user_subscribed(user_id, CHANNEL_ID_2)
+
+    if subscribed_first and subscribed_second:
         if is_user_registered(user_id):
-            await message.answer("Assalomu alaykum! Siz ro'yxatdan o'tgansiz va kanalga obuna bo'lgansiz. Davom etishingiz mumkin.")
+            await message.answer("Assalomu alaykum! Siz ro'yxatdan o'tgansiz va hamma kanalga obuna bo'lgansiz. Davom etishingiz mumkin.")
         else:
             await message.answer(
                 "Assalomu alaykum!\nIltimos, telefon raqamingizni yuboring, ro'yxatdan o'tishingiz kerak.",
@@ -105,9 +130,14 @@ async def send_welcome(message: types.Message):
             )
         await send_channel_stats()  # Har bir /start buyrug'ida kanal statistikasi yangilanadi
     else:
-        kanal_urli = f"https://t.me/bukhara_maktabi"
+        # Obuna bo'lmagan kanallar uchun linklarni yuboramiz
+        kanal_1_urli = f"https://t.me/bukhara_maktabi"  
+        kanal_2_urli = f"https://t.me/dehqonobodcity1"
         await message.answer(
-            f"Assalomu alaykum!\nDavom etish uchun [kanalimizga obuna bo'ling]({kanal_urli}) va qaytadan /start komandasini yuboring.",
+            f"Assalomu alaykum!\nDavom etish uchun iltimos, quyidagi kanallarga obuna bo'ling:\n"
+            f"1. [Kanal 1]({kanal_1_urli})\n"
+            f"2. [Kanal 2]({kanal_2_urli})\n\n"
+            f"Obuna bo'lgach, qaytadan /start buyrug'ini yuboring.",
             parse_mode="Markdown"
         )
 
@@ -166,6 +196,15 @@ async def handle_id(message: types.Message, bot: Bot):
     except Exception as e:
         logging.error(f"Xato yuz berdi: {e}")
         await message.answer("Xatolik yuz berdi. Keyinroq qayta urinib ko‘ring.")
+        
+@router.message(commands=["getid"])
+async def get_channel_id(message: types.Message):
+    try:
+        # Bot admin huquqiga ega bo'lgan kanalda yuborilgan xabar kontekstida chat ma'lumotlarini olish
+        chat = await bot.get_chat(message.chat.id)
+        await message.answer(f"Kanal ID: {chat.id}")
+    except Exception as e:
+        await message.answer(f"Xatolik yuz berdi: {e}")
 
 # Botni ishga tushiramiz
 async def main():
